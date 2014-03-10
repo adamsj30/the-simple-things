@@ -24,46 +24,15 @@ datatype tagged =
 
 exception RunTimeTypeError;
 
-fun dynamic_checked_add (x,y) = 
-	case x of
-		Int x => 
-			(case y of
-				Int y => Int (x + y)
-				| Real y => raise RunTimeTypeError
-				| Bool y => raise RunTimeTypeError
-				| String y => raise RunTimeTypeError)
-		| Real x => 
-			(case y of
-				Int y => raise RunTimeTypeError
-				| Real y => Real (x + y)
-				| Bool y => raise RunTimeTypeError
-				| String y => raise RunTimeTypeError)
-		| Bool x => raise RunTimeTypeError
-		| String x => raise RunTimeTypeError;
-		
-fun dynamic_checked_and (x,y) =
-	case x of
-		Int x => raise RunTimeTypeError
-		| Real x => raise RunTimeTypeError
-		| Bool x =>
-			(case y of
-				Int y => raise RunTimeTypeError
-				| Real y => raise RunTimeTypeError
-				| Bool y => Bool (x andalso y)
-				| String y => raise RunTimeTypeError)
-		| String x => raise RunTimeTypeError;
+fun dynamic_checked_add (Int(x),Int(y)) = Int(x+y)
+	| dynamic_checked_add (Real(x), Real(y)) = Real(x+y)
+	| dynamic_checked_add (_,_) = raise RunTimeTypeError;
 
-fun dynamic_checked_concatenate (x,y) =
-	case x of
-		Int x => raise RunTimeTypeError
-		| Real x => raise RunTimeTypeError
-		| Bool x => raise RunTimeTypeError
-		| String x =>
-			(case y of
-				Int y => raise RunTimeTypeError
-				| Real y => raise RunTimeTypeError
-				| Bool y => raise RunTimeTypeError
-				| String y => String (x ^ y));
+fun dynamic_checked_and (Bool(x),Bool(y)) = Bool(x andalso y)
+	| dynamic_checked_and (_,_) = raise RunTimeTypeError;
+
+fun dynamic_checked_concatenate (String(x), String(y)) = String(x ^ y)
+	| dynamic_checked_concatenate (_,_) = raise RunTimeTypeError;
 
 (*-------------3-------------*)
 
@@ -83,7 +52,7 @@ datatype FORMULA =
 	| OR of FORMULA * FORMULA
 	| NOT of FORMULA;
 
-fun eval (ATOMIC x, y) = if List.exists (fn t => x = t) y then (2 = 2) else (2 = 3)
+fun eval (ATOMIC x, y) = if List.exists (fn t => x = t) y then true else false
 	| eval (AND (x, z), y) = eval(x,y) andalso eval(z,y)
 	| eval (OR (x,z), y) = eval(x,y) orelse eval(z,y)
 	| eval (NOT x, y) = not(eval(x,y));
@@ -91,3 +60,8 @@ fun eval (ATOMIC x, y) = if List.exists (fn t => x = t) y then (2 = 2) else (2 =
 (*-------------6-------------*)
 
 fun check_formula form =
+	let
+		val choices = power_set 
+	in
+		body
+	end
