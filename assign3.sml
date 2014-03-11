@@ -59,9 +59,28 @@ fun eval (ATOMIC x, y) = if List.exists (fn t => x = t) y then true else false
 
 (*-------------6-------------*)
 
-fun check_formula form =
+fun check_formula patt =
 	let
-		val choices = power_set 
+		(*pulls variables out of the statement*)
+		fun expand (ATOMIC x, y) = if not(List.exists (fn t => x = t) y) then x::y else y
+					| expand (AND (x, z), y) = expand(x,y)@expand(z,y)
+					| expand (OR (x,z), y) = expand(x,y)@expand(z,y)
+					| expand (NOT x, y) = expand(x,y)@y;
+		(*removes all occurences of g from list*)
+		fun delete g nil = nil
+			| delete g (t::q) = if g = t then delete g q else t::(delete g q);
+		(*removes duplicates in a list*)
+		fun remDups nil = nil
+			| remDups (a::b) = (a::(remDups(delete a b)));
+		(*evaluates each of the expanded list*)
+		fun checkAll (nil, x, y) = 
+				if x = 0 andalso not(y = 0)
+					then "contradiction"
+				else
+					if not(x = 0) andalso y = 0
+						then "tautology"
+					else "neither"
+			| checkAll (n::ns, x, y) = if eval(patt, n) then checkAll(ns, x + 1, y) else checkAll(ns, x, y + 1);
 	in
-		body
-	end
+		checkAll(power_set(remDups(expand(patt, []))), 0, 0)
+	end;
