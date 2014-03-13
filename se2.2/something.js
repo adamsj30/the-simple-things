@@ -1,10 +1,11 @@
-function ElevationPoint(pointNumber, distance, bedrockElevation, iceSurfaceElevation, iceThickeness, tau){
+function ElevationPoint(pointNumber, distance, bedrockElevation, iceSurfaceElevation, iceThickeness, tau, interp){
 	this.pointNumber = pointNumber;
 	this.distance = distance;
 	this.bedrockElevation = bedrockElevation;
 	this.iceSurfaceElevation = iceSurfaceElevation;
 	this.iceThickeness = iceThickeness;
 	this.tau = tau;
+	this.interp = interp;
 	var originalBedrockElevation = 0;
 }
 
@@ -75,7 +76,7 @@ function generate_table() {
 		    if(i == 0 && j == 0)
 		    	var cellText = document.createTextNode("Point Number");
 		    else if(i == 0 && j == 1)
-		    	var cellText = document.createTextNode("Elevation");
+		    	var cellText = document.createTextNode("Bedrock Elevation");
 		    else if(i == 0 && j == 2)
 		    	var cellText = document.createTextNode("Distance");
 		    else if(i == 0 && j == 3)
@@ -88,11 +89,10 @@ function generate_table() {
 		    	var cellText = document.createElement("INPUT")
 		    	var tf = document.createTextNode(0.0);
 		    	cellText.appendChild(tf);
-		    	cell.setAttribute("id","["+i+"]["+j+"]");
+		    	cellText.setAttribute("id","["+i+"]["+j+"]");
 		    }
 		    //var att = document.createAttribute("class");
 			//att.value = "editableText";
-			cell.setAttribute("class","editable");
 			//cell.setAttribute("class","editableText");
 		    cell.appendChild(cellText);
 		    row.appendChild(cell);
@@ -108,4 +108,42 @@ function generate_table() {
 	body.appendChild(tbl);
 	// sets the border attribute of tbl to 2;
 	tbl.setAttribute("border", "2");
+
+	var calcBtn = document.createElement("BUTTON");
+	var calcTxt = document.createTextNode("Calculate");
+	calcBtn.appendChild(calcTxt);
+	body.appendChild(calcBtn);
+	calcBtn.setAttribute("onclick","grabData()");
+}
+
+function grabData(){
+	var numPoints = parseInt(document.getElementById("numPoints").value);
+	var numIter = parseInt(document.getElementById("numIter").value)+1;
+	var iterations = new Array(numIter);
+	var firstPoints = new Array(numPoints);
+	for(var t = 0; t < numPoints; t++){
+		firstPoints[t] = 
+			new ElevationPoint(t, //pointNumber
+			parseInt(document.getElementById("["+ (t+1) + "][2]").value), //distance
+			parseInt(document.getElementById("["+ (t+1) + "][1]").value), //bedrockElevation
+			0, //iceSurfaceElevation
+			0, //iceThickness
+			parseInt(document.getElementById("["+ (t+1) + "][3]").value), //tau
+			parseInt(document.getElementById("["+ (t+1) + "][4]").value) //interp
+			 );
+	}
+	iterations[0] = new Iteration(firstPoints,0);
+	//for(var i = 1; i < numIter; i++){
+	//	iterations[i] = new Iteration(iterations[i-1].calculateIS(), i);
+	//}
+	var body = document.getElementsByTagName("body")[0];
+	body.appendChild(document.createElement("br"));
+	for(var j = 0; j < firstPoints.length; j++){
+		body.appendChild(document.createTextNode((firstPoints[j].pointNumber+1) + " "));
+		body.appendChild(document.createTextNode(firstPoints[j].bedrockElevation + " "));
+		body.appendChild(document.createTextNode(firstPoints[j].distance + " "));
+		body.appendChild(document.createTextNode(firstPoints[j].tau + " "));
+		body.appendChild(document.createTextNode(firstPoints[j].interp));
+		body.appendChild(document.createElement("br"));
+	}
 }
