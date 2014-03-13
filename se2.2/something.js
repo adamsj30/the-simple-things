@@ -1,10 +1,11 @@
-function ElevationPoint(pointNumber, distance, bedrockElevation, iceSurfaceElevation, iceThickeness, tau){
+function ElevationPoint(pointNumber, distance, bedrockElevation, iceSurfaceElevation, iceThickeness, tau, interp){
 	this.pointNumber = pointNumber;
 	this.distance = distance;
 	this.bedrockElevation = bedrockElevation;
 	this.iceSurfaceElevation = iceSurfaceElevation;
 	this.iceThickeness = iceThickeness;
 	this.tau = tau;
+	this.interp = interp;
 	var originalBedrockElevation = 0;
 }
 
@@ -75,7 +76,7 @@ function generate_table() {
 		    if(i == 0 && j == 0)
 		    	var cellText = document.createTextNode("Point Number");
 		    else if(i == 0 && j == 1)
-		    	var cellText = document.createTextNode("Elevation");
+		    	var cellText = document.createTextNode("Bedrock Elevation");
 		    else if(i == 0 && j == 2)
 		    	var cellText = document.createTextNode("Distance");
 		    else if(i == 0 && j == 3)
@@ -108,4 +109,33 @@ function generate_table() {
 	body.appendChild(tbl);
 	// sets the border attribute of tbl to 2;
 	tbl.setAttribute("border", "2");
+
+	var calcBtn = document.createElement("BUTTON");
+	var calcTxt = document.createTextNode("Calculate");
+	calcBtn.appendChild(calcTxt);
+	body.appendChild(calcBtn);
+	calcBtn.setAttribute("onclick","grabData()");
+}
+
+function grabData(){
+	var numPoints = parseInt(document.getElementById("numPoints").value);
+	var numIter = parseInt(document.getElementById("numIter").value)+1;
+	var iterations = new Array(numIter);
+	var firstPoints = new Array(numPoints);
+	for(var t = 0; t < numPoints; t++){
+		firstPoints[t] = 
+			new IterationPoint(t, //pointNumber
+			document.getElementById("["+ t+1 + "][2]"), //distance
+			document.getElementById("["+ t+1 + "][1]"), //bedrockElevation
+			0, //iceSurfaceElevation
+			0, //iceThickness
+			document.getElementById("["+ t+1 + "][3]"), //tau
+			document.getElementById("["+ t+1 + "][4]") //interp
+			 );
+	}
+	iterations[0] = new Iteration(firstPoints,0);
+	for(var i = 1; i < numIter; i++){
+		iterations[i] = new Iteration(iterations[i-1].calculateIS(), i);
+	}
+	var something = 2;
 }
