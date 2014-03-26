@@ -23,7 +23,6 @@
 /lex
 
 %start expressions
-%right '^'
 
 %% /* language grammar */
 
