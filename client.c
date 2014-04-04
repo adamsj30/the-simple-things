@@ -12,8 +12,9 @@ pp. 405 - 407 */
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <ctype.h>
+#include <stdbool.h>
 
-#define PORTNUMBER  12344 /* Port of the server */
+#define PORTNUMBER  12346 /* Port of the server */
 
 //char request[]="ls -l";
 char currentDirectory[100];
@@ -22,6 +23,10 @@ char currentDirectory[100];
 char input[1024];
 char * command;
 char * params[1024];
+bool server = true;
+
+static char *commands[] = {"ls","rm","cp","mv","cat","cd","more", "mkdir","rmdir","clear"};
+int pid;
 
 int
 main(void)
@@ -31,6 +36,7 @@ main(void)
     char hostname[64];
     struct hostent *hp;
     struct sockaddr_in name;
+    bool cyaLater = false;
     /*
      * Get our local host name and put it into hostname array.
      */
@@ -84,54 +90,135 @@ main(void)
 
 
     while(1){
-        //getcwd(currentDirectory, sizeof(currentDirectory));
-        n = recv(s, buf, sizeof(buf), 0);
-        write(1, buf, n);
-        //printf(" $");
-
-        fgets(input, sizeof(input), stdin);
-        input[strlen(input)-1] = '\0';
-        //command = strtok(input,"' '<");
-        //printf("%s ", input);
-        strcpy(buf, input);
-        command = strtok(input,"' '<");
-        int i;
-        for(i = 0; command != NULL; command=strtok(NULL, "' '<")){
-            params[i] = command;
-            i++;
+        int p;
+        for(p = 0; p < sizeof(buf); p++){
+                buf[p] = 0;
         }
-        params[i] = 0;
-        
-        //strcpy(buf, input);
-        if (send(s, buf, n, 0) < 0)
-        {
-            perror("send");
-            exit(1);
-        }
+        if(cyaLater)
+            exit(0);
+        else{
+            if(server){
+                //getcwd(currentDirectory, sizeof(currentDirectory));
+                //printf("SERVER: ");
+                n = recv(s, buf, sizeof(buf), 0);
+                write(1, buf, n);
+                //printf(" $");
 
-        if((strncmp(params[0],".",100) == 0)) {
-            printf("Goodbye!\n");
-            break;
-        } else if ((strncmp(params[0],"upload",100) == 0)){
-            FILE *uf = fopen(params[1], "r");
-            if(uf < 0){
-                printf("File does not exist\n");
+                fgets(input, sizeof(input), stdin);
+                input[strlen(input)-1] = '\0';
+                //command = strtok(input,"' '<");
+                //printf("%s ", input);
+                strcpy(buf, input);
+                command = strtok(input,"' '<");
+                int i;
+                for(i = 0; command != NULL; command=strtok(NULL, "' '<")){
+                    params[i] = command;
+                    i++;
+                }
+                params[i] = 0;
+                
+                //strcpy(buf, input);
+                if (send(s, buf, n, 0) < 0)
+                {
+                    perror("send");
+                    exit(1);
+                }
+
+                if((strncmp(params[0],".",100) == 0)) {
+                    printf("Goodbye!\n");
+                    cyaLater = true;
+                } else if ((strncmp(params[0],"upload",100) == 0)){
+                    FILE *uf = fopen(params[1], "r");
+                    if(uf < 0){
+                        printf("File does not exist\n");
+                    } else {
+                        if((nread = fread(buf, 1, sizeof(buf), uf)) > 0){
+                            write(s, &buf, nread);
+                        }
+                    }
+                    fclose(uf);
+                } else if ((strncmp(params[0],"download",100) == 0)){
+                    FILE *file;
+                    file = fopen(params[1], "wb");
+                    n = recv(s, buf, sizeof(buf), 0);
+                    fwrite(buf, sizeof(char), sizeof(buf), file);
+                    fclose(file);
+                } else if ((strncmp(params[0],"client",100) == 0)){
+                    server = false;
+                } else if (!(strncmp(params[0],"cd",100) == 0)){
+                    n = recv(s, buf, sizeof(buf), 0);
+                    write(1, &buf, n);
+                } 
             } else {
-                if((nread = fread(buf, 1, sizeof(buf), uf)) > 0){
-                    write(s, &buf, nread);
+                getcwd(currentDirectory, sizeof(currentDirectory));
+                printf("CLIENT: %s $ ", currentDirectory);
+
+                //Gets users command
+                fgets(input, sizeof(input), stdin);
+                input[strlen(input)-1] = '\0';
+                command = strtok(input,"' '<");
+                int i;
+                for(i = 0; command != NULL; command=strtok(NULL, "' '<")){
+                    params[i] = command;
+                    i++;
+                }
+                params[i] = 0;
+
+                if(strncmp(params[0],"server",100) == 0)
+                    server = true;
+                else if(strncmp(params[0],"client",100) == 0)
+                    printf("Already accessing client commands.\n");
+                else {
+                    //Creating a child process
+                    pid = fork();
+                    if(pid == 0){
+                        if(strncmp(params[0],"dir",100) == 0){
+                            execvp(commands[0], params);
+                        } else if(strncmp(params[0],"del",100) == 0){
+                            execvp(commands[1], params);
+                        } else if(strncmp(params[0],"copy",100) == 0){
+                            execvp(commands[2], params);
+                        } else if(strncmp(params[0],"move",100) == 0){
+                            execvp(commands[3], params);
+                        } else if(strncmp(params[0],"rename",100) == 0){
+                            execvp(commands[3], params);
+                        } else if(strncmp(params[0],"type",100) == 0){
+                            execvp(commands[4], params);
+                        } else if(strncmp(params[0],"cd",100) == 0){
+                            int ret;
+                            if(strncmp(params[1],"~",100) == 0){
+                                char * home = strtok(currentDirectory,"/");
+                                char * root = malloc(strlen(home) + 2);
+                                strcpy(root, "/");
+                                strcat(root, home);
+                                ret = chdir(root);
+                            } else{
+                                ret = chdir(params[1]);
+                                if(ret < 0){
+                                    printf("Invald directory.\n");
+                                }
+                            }
+                        } else if(strncmp(params[0],"more",100) == 0){
+                            execvp(commands[6], params);
+                        } else if(strncmp(params[0],"md",100) == 0){
+                            execvp(commands[7], params);
+                        } else if(strncmp(params[0],"rd",100) == 0){
+                            execvp(commands[8], params);
+                        } else if(strncmp(params[0],"cls",100) == 0){
+                            execvp(commands[9], params);
+                        } else if(strncmp(params[0],".",100) == 0){
+                            printf("Must be using server to quit.\n");
+                        } else {
+                            execvp(params[0], params);
+                        }
+                        //printf ("%s: Not a valid command.\n", params[0]);
+                    } else {
+                        //The parent waits for the child to finish
+                        wait(0);
+                    }
                 }
             }
-            fclose(uf);
-        } else if ((strncmp(params[0],"download",100) == 0)){
-            FILE *file;
-            file = fopen(params[1], "wb");
-            n = recv(s, buf, sizeof(buf), 0);
-            fwrite(buf, sizeof(char), sizeof(buf), file);
-            fclose(file);
-        } else if (!(strncmp(params[0],"cd",100) == 0)){
-            n = recv(s, buf, sizeof(buf), 0);
-            write(1, &buf, n);
-        } 
+        }
     }
     close(s);
     printf("Client Program Terminated...\n");

@@ -12,7 +12,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 
-#define PORTNUMBER 12344
+#define PORTNUMBER 12346
 
 int main() {
 	//The list of some shell commands
@@ -23,7 +23,7 @@ int main() {
 	char * command;
 	char * params[1024];
 	static char *commands[] = {"ls","rm","cp","mv","cat","cd","more", "mkdir","rmdir","clear"};
-	int pid;
+	int pid, pid2;
 
 	char buf[1024];
     char d;
@@ -76,27 +76,25 @@ int main() {
 	        perror("accept");
 	        exit(1);
 	    }
-		dup2(ns, 1);
+	    pid2 = fork();
+	    if(pid2 == 0){
+	    	close(s);
+	    	dup2(ns, 1);
 		while(1){
+			int g;
+        	for(g = 0; g < sizeof(buf); g++){
+                buf[g] = 0;
+        	}
 			int p;
 			for(p = 0; p < sizeof(currentDirectory); p++){
 				currentDirectory[p] = 0;
 			}
 			getcwd(currentDirectory, sizeof(currentDirectory));
-			//printf("%s $ ", currentDirectory);
-			//char * d1 = strtok(currentDirectory,'\0');
-			//char * d2 = malloc(strlen(currentDirectory) + 3);
-			//strcpy(d2, d1);
 			strcat(currentDirectory, " $");
 			write(ns, currentDirectory, sizeof(currentDirectory));
 			//gets command from client.c
 	        n = recv(ns, buf, sizeof(buf), 0);
 
-	        //Get current directory and print it to screen
-
-			//Gets users command
-			//fgets(input, sizeof(input), stdin);
-			//input[strlen(input)-1] = '\0';
 			command = strtok(buf,"' '<");
 			int i;
 			for(i = 0; command != NULL; command=strtok(NULL, "' '<")){
@@ -153,7 +151,9 @@ int main() {
 				} else if(strncmp(params[0],"download",100) == 0){
 				 	FILE *uf = fopen(params[1], "r");
             		if(uf < 0){
-                		printf("File does not exist\n");
+            			char notExist[10];
+            			strcpy(notExist, "NOPE\0");
+                		write(ns, notExist, strlen(notExist)+1);
             		} else {
                 		if((nread = fread(buf, 1, sizeof(buf), uf)) > 0){
                     		write(ns, &buf, nread);
@@ -168,8 +168,9 @@ int main() {
 				//The parent waits for the child to finish
 				wait(0);
 			}
-		}
-		close(ns);
+		}close(ns);}
+		//close(ns);
 	}
-	close(s);
+	//close(ns);
+	//close(s);
 }
