@@ -1,0 +1,94 @@
+
+#include <stdio.h>
+main()
+{
+int proc_id;
+int i;
+
+proc_id = fork();
+//if (proc_id == 1) 
+if(fork())
+{
+   //child proccess
+	for(i=0;i<20;i++){
+	    printf("\t\t\tPARENT %d\n", i);
+	}
+}
+else
+{
+	for(i=0;i<20;i++){
+	    printf("\t\t\tCHILD %d\n", i);
+	}
+}
+}
+
+#include <stdio.h>
+main()
+{
+int proc_id;
+int i;
+
+proc_id = fork();
+//if (proc_id == 1) 
+if(fork())
+{
+   //child proccess
+	for(i=0;i<20;i++){
+	    printf("\t\t\tPARENT %d\n", i);
+	}
+}
+else
+{
+	for(i=0;i<20;i++){
+	    printf("\t\t\tCHILD %d\n", i);
+	}
+}
+}
+
+#include <stdio.h>
+main()
+{
+int proc_id;
+int i;
+
+proc_id = fork();
+//if (proc_id == 1) 
+if(fork())
+{
+   //child proccess
+	for(i=0;i<20;i++){
+	    printf("\t\t\tPARENT %d\n", i);
+	}
+}
+else
+{
+	for(i=0;i<20;i++){
+	    printf("\t\t\tCHILD %d\n", i);
+	}
+}
+}
+
+#include <stdio.h>
+main()
+{
+int proc_id;
+int i;
+
+proc_id = fork();
+//if (proc_id == 1) 
+if(fork())
+{
+   //child proccess
+	for(i=0;i<20;i++){
+	    printf("\t\t\tPARENT %d\n", i);
+	}
+}
+else
+{
+	for(i=0;i<20;i++){
+	    printf("\t\t\tCHILD %d\n", i);
+	}
+}
+}
+
+#includ

@@ -1,6 +1,13 @@
-/* Client program with the Internet socket */
-/* From the book of Curry, D, UNIX Systems..., 1996,
-pp. 405 - 407 */
+/*
+    Assignment 2
+    Joshua Adams
+    Broc Keifenheim
+    Colin Ladd
+
+    NOTES:
+    To switch between the client and server commands, type "server" and "client". You also
+    must be in the server mode in order to quit out with the "." command.
+*/
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -15,6 +22,7 @@ pp. 405 - 407 */
 #include <stdbool.h>
 
 #define PORTNUMBER  12346 /* Port of the server */
+#define IP "141.233.181.20"
 
 //char request[]="ls -l";
 char currentDirectory[100];
@@ -24,12 +32,13 @@ char input[1024];
 char * command;
 char * params[1024];
 bool server = true;
+struct hostent *hp;
+struct sockaddr_in name;
 
 static char *commands[] = {"ls","rm","cp","mv","cat","cd","more", "mkdir","rmdir","clear"};
 int pid;
 
-int
-main(void)
+int main(void)
 {
     int n, s, len, nread;
     char buf[1024];
@@ -72,7 +81,7 @@ main(void)
 
     name.sin_family = AF_INET;
     name.sin_port = htons(PORTNUMBER);
-    memcpy(&name.sin_addr, hp->h_addr_list[0], hp->h_length);
+    name.sin_addr.s_addr = inet_addr(IP);
     len = sizeof(struct sockaddr_in);
 
     /*
