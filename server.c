@@ -1,4 +1,9 @@
-
+/*
+	Assignment 2
+	Joshua Adams
+	Broc Keifenheim
+	Colin Ladd
+*/
 
 #include <unistd.h>
 #include <stdlib.h>
