@@ -12,6 +12,7 @@
 "in"                  return 'IN'
 "="                   return 'EQ'
 "?"                   return 'IF'
+"letrec"              return "LETREC"
 "("       { return '('; }
 ")"       { return ')'; }
 "^"|"λ"   { return 'LAMBDA'; }
@@ -64,6 +65,8 @@ expr
   | '(' IF SEP expr SEP expr SEP expr ')'
         {$$ = ["IfPrim", $expr1, $expr2, $expr3];}
   | '(' LET SEP var SEP EQ SEP expr SEP IN SEP expr ')'
+        {$$ = ["ApplyExpr", ["LambdaExpr", $var, $expr2], $expr1];}
+  | '(' LETREC SEP var SEP EQ SEP expr SEP IN SEP expr ')'
         {$$ = ["ApplyExpr", ["LambdaExpr", $var, $expr2], $expr1];}
   | NUMBER
         {$$ = ["NumberConst", Number(yytext)];}
