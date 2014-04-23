@@ -17,7 +17,7 @@ class Simulation{
 		data_for_simulation = data;
 	}
 
-	public void simulate(){
+	private void simulate(){
 		switch(sim_id){
 			case FCFS:
 				first_come_first_serve();
@@ -39,26 +39,55 @@ class Simulation{
 		}
 	}
 
-	public void first_come_first_serve(){
+	private void first_come_first_serve(){
+		// Number of processes for easier refrencing
+		int number_of_processes = data_for_simulation.Length;
+		// Putting arrival times into arrival_times[]
+		int arrival_times = new int[number_of_processes];
+		for(int i = 0; i < number_of_processes; i++){
+			arrival_times[i] = data_for_simulation[i][0];
+		}
+		// Putting wait times and initilizing them to zero (used for calculations)
+		int wait_times = new int[number_of_processes];
+		for(int i = 0; i < number_of_processes; i++){
+			wait_times[i] = 0;
+		}
+		
+		LinkedList<int[]> cpu;
+		LinkedList<int[]> io;
+
+		for(int i = 0; i < number_of_processes; i++){
+			
+		}
+	}
+
+	private void shortest_job_first_non_preemptive(){
 		
 	}
 
-	public void shortest_job_first_non_preemptive(){
-		int number_of_processes = data_for_simulation.Length;
-		LinkedList<int[]> cpu;
-		LinkedList<int[]> io;
-	}
-
-	public void shortest_job_first_preemptive(){
+	private void shortest_job_first_preemptive(){
 
 	}
 
-	public void round_robin(){
+	private void round_robin(){
 
 	}
 
-	public void feedback(){
+	private void feedback(){
 
+	}
+
+	// Gets the index of the shorest start time
+	private int getFirstArrival(int[] times){
+		int index = 0;
+		int currentMax = Int32.MaxValue;
+		for(int i = 0; i < times.Length; i++){
+			if(times[i] < currentMax){
+				index = i;
+				currentMax = times[i];
+			}
+		}
+		return index;
 	}
 
 	static void Main(){
