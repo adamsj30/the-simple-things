@@ -12,7 +12,6 @@ C:\Users\Josh\Documents\Schedule Simulator\Schedule Simulator\obj\Debug\Schedule
 C:\Users\Josh\Documents\Schedule Simulator\Schedule Simulator\obj\Debug\Schedule Simulator.pdb
 C:\Users\Josh\Documents\Schedule Simulator\Schedule Simulator\bin\Debug\Schedule Simulator.exe
 C:\Users\Josh\Documents\Schedule Simulator\Schedule Simulator\bin\Debug\Schedule Simulator.pdb
-C:\Users\Josh\Documents\Schedule Simulator\Schedule Simulator\obj\Debug\Schedule Simulator.csprojResolveAssemblyReference.cache
 C:\Users\Josh\Documents\Schedule Simulator\Schedule Simulator\obj\Debug\Schedule_Simulator.Form1.resources
 C:\Users\Josh\Documents\Schedule Simulator\Schedule Simulator\obj\Debug\Schedule_Simulator.Properties.Resources.resources
 C:\Users\Josh\Documents\Schedule Simulator\Schedule Simulator\obj\Debug\Schedule Simulator.csproj.GenerateResource.Cache

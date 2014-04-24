@@ -31,7 +31,7 @@ namespace Schedule_Simulator
             dataGridView1[0, rowCount].Value = ("Process " + (rowCount+1));
             for (int i = 0; i < (timeCount * 2); i++)
             {
-                //dataGridView1[i, rowCount].ValueType = typeof(int);
+                dataGridView1[i, rowCount].ValueType = typeof(int);
                 //dataGridView1[i, rowCount].ErrorText = "Must be integer";
             }
             
@@ -73,7 +73,33 @@ namespace Schedule_Simulator
 
         private void button5_Click(object sender, EventArgs e)
         {
-            Form2 displayForm = new Form2();
+            // Get arrays from the tables
+            int[] start_times = new int[rowCount];
+            for (int i = 0; i < rowCount; i++)
+            {
+                start_times[i] = Convert.ToInt32(dataGridView1[1, i].Value.ToString());
+            }
+            int[][] cpu_data = new int[rowCount][];
+            for (int i = 0; i < rowCount; i++)
+            {
+                cpu_data[i] = new int[timeCount];
+                for (int j = 2; j < dataGridView1.Columns.Count; j += 2)
+                {
+                    cpu_data[i][(j / 2) - 1] = Convert.ToInt32(dataGridView1.Rows[i].Cells[j].Value);
+                }
+            }
+            int[][] io_data = new int[rowCount][];
+            for (int i = 0; i < rowCount; i++)
+            {
+                io_data[i] = new int[timeCount - 1];
+                for (int j = 3; j < dataGridView1.Columns.Count; j += 2)
+                {
+                    io_data[i][((j - 1) / 2) - 1] = Convert.ToInt32(dataGridView1.Rows[i].Cells[j].Value);
+                }
+            }
+            
+            // Create second form and display it
+            Form2 displayForm = new Form2(start_times, cpu_data, io_data);
             displayForm.Visible = true;
             this.Visible = false;
         }
