@@ -50,27 +50,41 @@ class BTLeech implements CSProcess
         ChannelOutput out_chan;
         ChannelInput in_chan;
 
-        // The plain vanilla solution that you start with -- no load
-        // balancing is done.  Be sure that you write this in a
-        // fashion that effectively load balances.
         in_chan = messages[my_id];
-        for (int cp = 0; cp < my_animator.length(); cp ++)  {
-            out_chan = messages[0]; // If out_chan is always the same,
-                                    // isn't it dumb to do this
-                                    // assignment in the loop?
-            out_chan.write ( new Message(true, my_id, cp) );
-            Message m = (Message) in_chan.read();
-            if (m.request) {
-                // Right now leeches never turn into quasi-seeds, so
-                // they will never get requests But that should
-                // change.
+        for(int i = 0; i < my_animator.length(); i++){
+            int actual_num = (my_id-1) % my_animator.length();
+            if(i == actual_num){
+                out_chan = messages[0];
+            } else {
+                out_chan = messages[my_id + 1];
             }
-            else {  // if this was not a request of you, then it must
-                    // be an acknowledgement of one of your previous
-                    // requests
-                my_animator.animate_transfer (m.from, my_id, m.char_pos);
+            out_chan.write(new Message(true, my_id, i));
+
+            Message m = (Message) in_chan.read();
+            if(m.request){
+                if(my_animator.get(my_id, m.char_pos) == '?'){
+                    out_chan = messages[my_id];
+                    out_chan.write(new Message(true, m.from, m.char_pos));
+                } else {
+                    out_chan = messages[m.from];
+                    out_chan.write(new Message(false, my_id, m.char_pos));
+                }
+            } else {
+                my_animator.animate_transfer(m.from, my_id, m.char_pos);
             }
         }
+
+        // for(int i = 0; i < my_animator.length(); i++){
+        //     out_chan = messages[my_id-1];
+        //     out_chan.write(new Message(true, my_id, i));
+        //     Message m = (Message) in_chan.read();
+        //     if(m.request){
+        //         out_chan = messages[m.from];
+        //         out_chan.write(new Message(false, my_id, m.char_pos));
+        //     } else {
+        //         my_animator.animate_transfer(m.from, my_id-1, m.char_pos);
+        //     }
+        // }
     }
 }
    
