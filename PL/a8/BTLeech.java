@@ -51,7 +51,8 @@ class BTLeech implements CSProcess
         ChannelInput in_chan;
 
         in_chan = messages[my_id];
-        for(int i = 0; i < my_animator.length(); i++){
+        int i = 0;
+        while(i < my_animator.length()){
             int actual_num = (my_id-1) % my_animator.length();
             if(i == actual_num){
                 out_chan = messages[0];
@@ -68,9 +69,11 @@ class BTLeech implements CSProcess
                 } else {
                     out_chan = messages[m.from];
                     out_chan.write(new Message(false, my_id, m.char_pos));
+                    i++;
                 }
             } else {
                 my_animator.animate_transfer(m.from, my_id, m.char_pos);
+                i++;
             }
         }
 
