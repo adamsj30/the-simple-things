@@ -50,6 +50,28 @@ class BTLeech implements CSProcess
         }
     } 
 
+    /*
+        -------------DOCUMENTATION------------
+        Joshua Adams
+        Assignment 8
+
+
+        The way the algorithm works is if the char its grabbing is on the diagon (id num is the mod of the length of the string)
+        then it grabs from the seed. Otherewise if it is below the diagonal, it gets its value from the leech directly above it.
+        if it is above the diagonal, it grabs from the leech directly below it. The odd case is that the last leech grabs directly
+        from the seed as well, because I was having problems with it looping all the way through to the last element.
+
+        I made an array hasValue[] that acts as a bit array that keeps track if you have the value you need alreaedy, or if you have
+        still need the value. THe index of each element in that array is the index of the characters in the string
+
+        I also made a boolean done that checks to see if all the values along the diagonal have their requests already sent, this way
+        it removes unnecessary for looping, thus saving time.
+
+        The code does have problems sometimes. In the foo example, it will work the majority of the time, but sometimes it will end up
+        failing out and will leave it as a question mark, but in general it works and works more efficiently than the class file
+        that was given.
+    */
+
       
     public void run()
     {
@@ -57,87 +79,43 @@ class BTLeech implements CSProcess
         ChannelInput in_chan;
 
         in_chan = messages[my_id];
-        int i = 0;
         boolean done = false;
+
         while(true){
-            // if your my_id is 0 only send responses
-            if(my_id == 0){
-                Message m = (Message) in_chan.read();
-                out_chan = messages[m.from];
-                out_chan.write(new Message(false, my_id, m.char_pos));
-            } else { 
-                if(!done){
-                    for(int j = 0; j < hasValue.length; j++){
-                        if(hasValue[j] == 0){
-                            int actual_num = (my_id - 1) % my_animator.length();
-                            if(j == actual_num){
-                                out_chan = messages[0];
-                                out_chan.write(new Message(true, my_id, j));
-                            }
-                        }
-                    }
-                    done = true;
-                }
-                Message m = (Message) in_chan.read();
-                if(m != null && !m.request){
-                    if(my_animator.get(my_id, m.char_pos) == '?'){
-                        hasValue[m.char_pos] = 1;
-                        my_animator.animate_transfer(m.from, my_id, m.char_pos);
-                    }
-                    //if(my_id < my_animator.length()+1){
+            if(!done){
+                for(int j = 0; j < hasValue.length; j++){
+                    if(hasValue[j] == 0){
                         int actual_num = (my_id - 1) % my_animator.length();
-                        for(int t = 1; t < my_animator.num_leeches()+1; t++){
-                            int actual_t = (t - 2 + my_animator.length()) % my_animator.length();
-                            if(actual_num == actual_t){
-                                //System.out.println(my_id + " " + my_animator.get(my_id, m.char_pos) + " " + t);
-                                out_chan = messages[t];
-                                out_chan.write(new Message(false, my_id, m.char_pos));
-                            }
+                        if(j % my_animator.num_leeches() == actual_num || my_animator.num_leeches() == my_id){
+                            out_chan = messages[0];
+                            out_chan.write(new Message(true, my_id, j));
                         }
-                    //}
-                    
+                    }
+                }
+                done = true;
+            }
+            Message m = (Message) in_chan.read();
+            if(m != null && !m.request){
+                // animate the transfer
+                if(hasValue[m.char_pos] == 0){
+                    hasValue[m.char_pos] = 1;
+                    my_animator.animate_transfer(m.from, my_id, m.char_pos);
+                }
+                // send your value to your neighbors
+                int actual_num = (my_id - 1) % my_animator.length();
+                if(actual_num > m.char_pos % my_animator.num_leeches()){
+                    out_chan = messages[(my_id + 1) % my_animator.num_leeches()];
+                    out_chan.write(new Message(false, my_id, m.char_pos));
+                } else if(actual_num < m.char_pos % my_animator.num_leeches()){
+                    out_chan = messages[(my_id - 1)];
+                    out_chan.write(new Message(false, my_id, m.char_pos));
+                } else {
+                    out_chan = messages[(my_id + 1) % my_animator.num_leeches()];
+                    out_chan.write(new Message(false, my_id, m.char_pos));
+                    out_chan = messages[(my_id - 1)];
+                    out_chan.write(new Message(false, my_id, m.char_pos));
                 }
             }
-
-
-
-
-
-            // if(!done){
-            //     for(int j = 0; j < hasValue.length; j++){
-            //         if(hasValue[j] == 0){
-            //             int actual_num = (my_id - 1) % my_animator.length();
-            //             if(j == actual_num){
-            //                 out_chan = messages[0];
-            //             } else {
-            //                 out_chan = messages[my_id - 1];
-            //             }
-            //             out_chan.write(new Message(true, my_id, j));
-            //         }
-            //     }
-            //     done = true;
-            // }
-            
-            // int f = 0;
-            // //while(f < 10){
-            //     Message m = (Message) in_chan.read();
-            //     if(m.request){
-            //         if(my_animator.get(my_id, m.char_pos) == '?'){
-            //             //out_chan = messages[my_id];
-            //             //out_chan.write(new Message(true, m.from, m.char_pos));
-            //         } else {
-            //             out_chan = messages[m.from];
-            //             out_chan.write(new Message(false, my_id, m.char_pos));
-            //         }
-            //     } else {
-            //         //System.out.println(my_id + " " + m.from);
-            //         hasValue[m.char_pos] = 1;
-            //         my_animator.animate_transfer(m.from, my_id, m.char_pos);
-            //         i++;
-            //     }
-            //     f++;
-            //     //m = (Message) in_chan.read();
-            // //}
         }
     }
 }
