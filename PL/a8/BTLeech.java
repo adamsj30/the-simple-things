@@ -28,6 +28,7 @@ class BTLeech implements CSProcess
     int my_id;
     Channel messages[];
     TheAnimator my_animator;
+    int hasValue[];
 
     // When a leech is constructed, it receives its integer ID (the
     // "processor number"), an array of Any2One channels, and the
@@ -42,7 +43,12 @@ class BTLeech implements CSProcess
         my_id = id;
         this.messages = messages;
         this.my_animator = ta;
-    }   
+
+        hasValue = new int[my_animator.length()];
+        for(int i = 0; i < hasValue.length; i++){
+            hasValue[i] = 0;
+        }
+    } 
 
       
     public void run()
@@ -52,42 +58,87 @@ class BTLeech implements CSProcess
 
         in_chan = messages[my_id];
         int i = 0;
-        while(i < my_animator.length()){
-            int actual_num = (my_id-1) % my_animator.length();
-            if(i == actual_num){
-                out_chan = messages[0];
-            } else {
-                out_chan = messages[my_id + 1];
-            }
-            out_chan.write(new Message(true, my_id, i));
-
-            Message m = (Message) in_chan.read();
-            if(m.request){
-                if(my_animator.get(my_id, m.char_pos) == '?'){
-                    out_chan = messages[my_id];
-                    out_chan.write(new Message(true, m.from, m.char_pos));
-                } else {
-                    out_chan = messages[m.from];
-                    out_chan.write(new Message(false, my_id, m.char_pos));
-                    i++;
+        boolean done = false;
+        while(true){
+            // if your my_id is 0 only send responses
+            if(my_id == 0){
+                Message m = (Message) in_chan.read();
+                out_chan = messages[m.from];
+                out_chan.write(new Message(false, my_id, m.char_pos));
+            } else { 
+                if(!done){
+                    for(int j = 0; j < hasValue.length; j++){
+                        if(hasValue[j] == 0){
+                            int actual_num = (my_id - 1) % my_animator.length();
+                            if(j == actual_num){
+                                out_chan = messages[0];
+                                out_chan.write(new Message(true, my_id, j));
+                            }
+                        }
+                    }
+                    done = true;
                 }
-            } else {
-                my_animator.animate_transfer(m.from, my_id, m.char_pos);
-                i++;
+                Message m = (Message) in_chan.read();
+                if(m != null && !m.request){
+                    if(my_animator.get(my_id, m.char_pos) == '?'){
+                        hasValue[m.char_pos] = 1;
+                        my_animator.animate_transfer(m.from, my_id, m.char_pos);
+                    }
+                    //if(my_id < my_animator.length()+1){
+                        int actual_num = (my_id - 1) % my_animator.length();
+                        for(int t = 1; t < my_animator.num_leeches()+1; t++){
+                            int actual_t = (t - 2 + my_animator.length()) % my_animator.length();
+                            if(actual_num == actual_t){
+                                //System.out.println(my_id + " " + my_animator.get(my_id, m.char_pos) + " " + t);
+                                out_chan = messages[t];
+                                out_chan.write(new Message(false, my_id, m.char_pos));
+                            }
+                        }
+                    //}
+                    
+                }
             }
-        }
 
-        // for(int i = 0; i < my_animator.length(); i++){
-        //     out_chan = messages[my_id-1];
-        //     out_chan.write(new Message(true, my_id, i));
-        //     Message m = (Message) in_chan.read();
-        //     if(m.request){
-        //         out_chan = messages[m.from];
-        //         out_chan.write(new Message(false, my_id, m.char_pos));
-        //     } else {
-        //         my_animator.animate_transfer(m.from, my_id-1, m.char_pos);
-        //     }
-        // }
+
+
+
+
+            // if(!done){
+            //     for(int j = 0; j < hasValue.length; j++){
+            //         if(hasValue[j] == 0){
+            //             int actual_num = (my_id - 1) % my_animator.length();
+            //             if(j == actual_num){
+            //                 out_chan = messages[0];
+            //             } else {
+            //                 out_chan = messages[my_id - 1];
+            //             }
+            //             out_chan.write(new Message(true, my_id, j));
+            //         }
+            //     }
+            //     done = true;
+            // }
+            
+            // int f = 0;
+            // //while(f < 10){
+            //     Message m = (Message) in_chan.read();
+            //     if(m.request){
+            //         if(my_animator.get(my_id, m.char_pos) == '?'){
+            //             //out_chan = messages[my_id];
+            //             //out_chan.write(new Message(true, m.from, m.char_pos));
+            //         } else {
+            //             out_chan = messages[m.from];
+            //             out_chan.write(new Message(false, my_id, m.char_pos));
+            //         }
+            //     } else {
+            //         //System.out.println(my_id + " " + m.from);
+            //         hasValue[m.char_pos] = 1;
+            //         my_animator.animate_transfer(m.from, my_id, m.char_pos);
+            //         i++;
+            //     }
+            //     f++;
+            //     //m = (Message) in_chan.read();
+            // //}
+        }
     }
 }
    
